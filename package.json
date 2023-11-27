@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/joycuicui/tinyapp/issues"
   },
-  "homepage": "https://github.com/joycuicui/tinyapp#readme"
+  "homepage": "https://github.com/joycuicui/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
