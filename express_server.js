@@ -5,7 +5,18 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
-function generateRandomString() {}
+function generateRandomString() {
+  // return Math.random().toString(36).slice(2, 8);
+  let result = "";
+  const characters =
+    "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  for (let i = 0; i < 6; i++) {
+    // Math.random() * characters.length scales this random number to
+    // a range between 0 (inclusive) and characters.length (exclusive)
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
 
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
@@ -25,13 +36,10 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
-// app.post("/submit", (req, res) => {
-//   res.render("urls_new", { name: req.body["longURL"] });
-// });
-
 app.post("/urls", (req, res) => {
-  console.log(req.body);
-  res.send("OK");
+  const id = generateRandomString();
+  urlDatabase[id] = req.body.longURL;
+  res.redirect(`/urls/${id}`);
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -40,6 +48,14 @@ app.get("/urls/:id", (req, res) => {
     longURL: urlDatabase[req.params.id],
   };
   res.render("urls_show", templateVars);
+});
+
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+  if (!longURL) {
+    res.status(404).send("Short URL not found.");
+  }
+  res.redirect(longURL);
 });
 
 app.get("/urls.json", (req, res) => {
