@@ -23,6 +23,19 @@ function generateRandomString() {
 }
 
 // DATABASE
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
@@ -33,12 +46,13 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  const templateVars = { urls: urlDatabase, user: req.cookies["user_id"] };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { user: req.cookies["user_id"] };
+  res.render("urls_new", templateVars);
 });
 
 app.post("/urls", (req, res) => {
@@ -49,6 +63,7 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   const templateVars = {
+    user: req.cookies["user_id"],
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
   };
@@ -85,22 +100,34 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const username = req.body.username;
-  res.cookie("username", username);
+  const user_id = req.body["user_id"];
+  res.cookie("user_id", user_id);
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
 app.get("/register", (req, res) => {
   const templateVars = {
+    user: req.cookies["user_id"],
     email: req.body.email,
-    password: req.body.pasword,
+    password: req.body.password,
   };
   res.render("register", templateVars);
+});
+
+app.post("/register", (req, res) => {
+  const newUserID = generateRandomString();
+  users[newUserID] = {
+    id: newUserID,
+    email: req.body.email,
+    password: req.body.password,
+  };
+  res.cookie("user_id", newUserID);
+  res.redirect("/urls");
 });
 
 // Listen Handler
