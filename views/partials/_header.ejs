@@ -19,12 +19,14 @@
       </div>
     </div>
     <% if (username) { %>
-      <label>Logged in as: <%= username %></label> 
+    <form method="POST" action="/logout">
+      <label>Logged in as: <%= username %></label>
+      <button type="submit" class="btn btn-outline-secondary">Logout</button>
     </form>
     <% } else { %>
     <form method="POST" action="/login">
       <input type="text" name="username" placeholder="Username" />
-      <button type="submit" class="btn btn-outline-primary">Login</button>
+      <button type="submit" class="btn btn-outline-secondary">Login</button>
     </form>
     <% } %>
   </nav>
