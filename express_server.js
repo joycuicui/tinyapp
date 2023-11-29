@@ -81,6 +81,12 @@ app.post("/urls/:id", (req, res) => {
   urlDatabase[id] = newLongURL;
   res.redirect("/urls");
 });
+
+app.post("/login", (req, res) => {
+  const username = req.body.username;
+  res.cookie("username", username);
+  res.redirect("/urls");
+});
 // Listen Handler
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
