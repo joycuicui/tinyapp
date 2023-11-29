@@ -95,6 +95,14 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
+app.get("/register", (req, res) => {
+  const templateVars = {
+    email: req.body.email,
+    password: req.body.pasword,
+  };
+  res.render("register", templateVars);
+});
+
 // Listen Handler
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
