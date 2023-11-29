@@ -22,6 +22,15 @@ function generateRandomString() {
   return result;
 }
 
+function emailExist(email) {
+  for (const userID in users) {
+    if (users[userID].email === email) {
+      return users[userID];
+    }
+  }
+  return null;
+}
+
 // DATABASE
 const users = {
   userRandomID: {
@@ -123,11 +132,22 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (!email || !password) {
+    return res.status(400).send("Please enter email and passward.");
+  }
+
+  if (emailExist) {
+    return res.status(400).send("This email has already been registered.");
+  }
+
   const newUserID = generateRandomString();
   users[newUserID] = {
     id: newUserID,
-    email: req.body.email,
-    password: req.body.password,
+    email: email,
+    password: password,
   };
   res.cookie("user_id", newUserID);
   res.redirect("/urls");
