@@ -1,8 +1,8 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
-const PORT = 8080; // default port 8080
 
 const app = express();
+const PORT = 8080;
 app.set("view engine", "ejs");
 
 // MIDDLEWARE
@@ -10,13 +10,10 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 function generateRandomString() {
-  // return Math.random().toString(36).slice(2, 8);
   let result = "";
   const characters =
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   for (let i = 0; i < 6; i++) {
-    // Math.random() * characters.length scales the random number to
-    // a range between 0 (inclusive) and characters.length (exclusive)
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
   return result;
@@ -55,22 +52,44 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    user: users[req.cookies["user_id"]],
-  };
-  res.render("urls_index", templateVars);
-});
+  const user = users[req.cookies["user_id"]];
 
-app.get("/urls/new", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] };
-  res.render("urls_new", templateVars);
+  if (user) {
+    const templateVars = {
+      urls: urlDatabase,
+      user: users[req.cookies["user_id"]],
+    };
+    res.render("urls_index", templateVars);
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.post("/urls", (req, res) => {
-  const id = generateRandomString();
-  urlDatabase[id] = req.body.longURL;
-  res.redirect(`/urls/${id}`);
+  const user = users[req.cookies["user_id"]];
+  console.log(user);
+  if (user) {
+    const id = generateRandomString();
+    urlDatabase[id] = req.body.longURL;
+    res.redirect(`/urls/${id}`);
+  } else {
+    res.send("<p>Login first to start shortening URLs</p>");
+  }
+});
+// app.post("/urls", (req, res) => {
+//   const id = generateRandomString();
+//   urlDatabase[id] = req.body.longURL;
+//   res.redirect(`/urls/${id}`);
+// });
+
+app.get("/urls/new", (req, res) => {
+  const user = users[req.cookies["user_id"]];
+  if (user) {
+    const templateVars = { user };
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -82,28 +101,6 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
-  if (!longURL) {
-    res.status(404).send("Short URL not found.");
-  }
-  res.redirect(longURL);
-});
-
-// app.get("/urls.json", (req, res) => {
-//   res.json(urlDatabase);
-// });
-
-// app.get("/hello", (req, res) => {
-//   res.send("<html><body>Hello <b>World</b></body></html>\n");
-// });
-
-app.post("/urls/:id/delete", (req, res) => {
-  const id = req.params.id;
-  delete urlDatabase[id];
-  res.redirect("/urls");
-});
-
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const newLongURL = req.body.newLongURL;
@@ -111,7 +108,30 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
+app.post("/urls/:id/delete", (req, res) => {
+  const id = req.params.id;
+  delete urlDatabase[id];
+  res.redirect("/urls");
+});
+
+app.get("/u/:id", (req, res) => {
+  if (!Object.keys(urlDatabase).includes(req.params.id)) {
+    return res.send("<h1>ID does not exist</h1>");
+  }
+
+  const longURL = urlDatabase[req.params.id];
+  if (!longURL) {
+    res.status(404).send("Short URL not found.");
+  }
+  res.redirect(longURL);
+});
+
 app.get("/login", (req, res) => {
+  const user = users[req.cookies["user_id"]];
+  if (user) {
+    res.redirect("/urls");
+  }
+
   const templateVars = {
     user: users[req.cookies["user_id"]],
     email: req.body.email,
@@ -146,6 +166,11 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
+  const user = users[req.cookies["user_id"]];
+  if (user) {
+    res.redirect("/urls");
+  }
+
   const templateVars = {
     user: users[req.cookies["user_id"]],
     email: req.body.email,
@@ -176,7 +201,6 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
-// Listen Handler
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
