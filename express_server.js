@@ -139,7 +139,7 @@ app.post("/register", (req, res) => {
     return res.status(400).send("Please enter email and passward.");
   }
 
-  if (emailExist) {
+  if (emailExist(email)) {
     return res.status(400).send("This email has already been registered.");
   }
 
@@ -151,6 +151,15 @@ app.post("/register", (req, res) => {
   };
   res.cookie("user_id", newUserID);
   res.redirect("/urls");
+});
+
+app.get("/login", (req, res) => {
+  const templateVars = {
+    user: users[req.cookies["user_id"]],
+    email: req.body.email,
+    password: req.body.password,
+  };
+  res.render("login", templateVars);
 });
 
 // Listen Handler
