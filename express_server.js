@@ -123,13 +123,15 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
+  // check if shortURL exists in database
   if (!urlDatabase[req.params.id]) {
     return res.send("ShortURL not Found!");
   }
+  // check if user is logged in
   if (!req.cookies["user_id"]) {
     return res.send("You are not logged in!");
   }
-
+  // check if user owns the URL
   if (urlDatabase[req.params.id].userID === req.cookies["user_id"]) {
     const templateVars = {
       user: users[req.cookies["user_id"]],
@@ -159,7 +161,7 @@ app.post("/urls/:id/delete", (req, res) => {
   if (!req.cookies["user_id"]) {
     return res.send("You are not logged in!");
   }
-  // check if user own the URL
+  // check if user owns the URL
   if (urlDatabase[req.params.id].userID !== req.cookies["user_id"]) {
     return res.send("You do not own this URL.");
   }
@@ -194,18 +196,20 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
+  // pull data off the body object
   const email = req.body.email;
   const password = req.body.password;
 
   if (!email || !password) {
     return res.status(400).send("Please enter email and passward.");
   }
-
+  // lookup user
   const user = findUserByEmail(email);
-
+  // if user does not exist
   if (!user) {
     return res.status(403).send("This email has not been registered yet.");
   }
+  // if password does not match
   if (user.password !== password) {
     return res.status(403).send("Incorrect password.");
   }
@@ -214,7 +218,9 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
+  // clear the cookie
   res.clearCookie("user_id");
+  // send user back to login
   res.redirect("/login");
 });
 
@@ -233,23 +239,26 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  // pull data off the body object
   const email = req.body.email;
   const password = req.body.password;
-
+  // if we get email and password
   if (!email || !password) {
     return res.status(400).send("Please enter email and passward.");
   }
-
+  // check if user exists
   if (findUserByEmail(email)) {
     return res.status(400).send("This email has already been registered.");
   }
-
+  // create a new user object
   const newUserID = generateRandomString();
+  // update the users object
   users[newUserID] = {
     id: newUserID,
     email: email,
     password: password,
   };
+  // automatically log user in
   res.cookie("user_id", newUserID);
   res.redirect("/urls");
 });
