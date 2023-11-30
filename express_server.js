@@ -22,7 +22,7 @@ function generateRandomString() {
   return result;
 }
 
-function emailExist(email) {
+function findUserByEmail(email) {
   for (const userID in users) {
     if (users[userID].email === email) {
       return users[userID];
@@ -111,15 +111,38 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
+app.get("/login", (req, res) => {
+  const templateVars = {
+    user: users[req.cookies["user_id"]],
+    email: req.body.email,
+    password: req.body.password,
+  };
+  res.render("login", templateVars);
+});
+
 app.post("/login", (req, res) => {
-  const user_id = req.body["user_id"];
-  res.cookie("user_id", user_id);
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (!email || !password) {
+    return res.status(400).send("Please enter email and passward.");
+  }
+
+  const user = findUserByEmail(email);
+
+  if (!user) {
+    return res.status(403).send("This email has not been registered yet.");
+  }
+  if (user.password !== password) {
+    return res.status(403).send("Incorrect password.");
+  }
+  res.cookie("user_id", user.id);
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 app.get("/register", (req, res) => {
@@ -139,7 +162,7 @@ app.post("/register", (req, res) => {
     return res.status(400).send("Please enter email and passward.");
   }
 
-  if (emailExist(email)) {
+  if (findUserByEmail(email)) {
     return res.status(400).send("This email has already been registered.");
   }
 
@@ -151,15 +174,6 @@ app.post("/register", (req, res) => {
   };
   res.cookie("user_id", newUserID);
   res.redirect("/urls");
-});
-
-app.get("/login", (req, res) => {
-  const templateVars = {
-    user: users[req.cookies["user_id"]],
-    email: req.body.email,
-    password: req.body.password,
-  };
-  res.render("login", templateVars);
 });
 
 // Listen Handler
