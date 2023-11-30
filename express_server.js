@@ -151,8 +151,19 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  const id = req.params.id;
-  delete urlDatabase[id];
+  // check if shortURL exists in database
+  if (!urlDatabase[req.params.id]) {
+    return res.send("ShortURL not Found!");
+  }
+  // check if user is logged in
+  if (!req.cookies["user_id"]) {
+    return res.send("You are not logged in!");
+  }
+  // check if user own the URL
+  if (urlDatabase[req.params.id].userID !== req.cookies["user_id"]) {
+    return res.send("You do not own this URL.");
+  }
+  delete urlDatabase[req.params.id];
   res.redirect("/urls");
 });
 
