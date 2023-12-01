@@ -77,12 +77,10 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   // check if shortURL exists in database
   if (!urlDatabase[req.params.id]) {
-    console.log("ShortURL not Found!", req.params.id);
     return res.send("<h2>ShortURL not Found!</h2>");
   }
   // check if user is logged in
   if (!req.session.user_id) {
-    console.log("User not logged in!");
     return res.send("<h2>You are not logged in!</h2>");
   }
   // check if user owns the URL
@@ -95,7 +93,6 @@ app.get("/urls/:id", (req, res) => {
     };
     res.render("urls_show", templateVars);
   } else {
-    console.log("Not your shortURL", req.params.id);
     res.send("<h2>Not your shortURL<h2>");
   }
 });
