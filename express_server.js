@@ -2,6 +2,8 @@ const express = require("express");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
 
+const { findUserByEmail } = require("./helpers");
+
 const app = express();
 const PORT = 8080;
 app.set("view engine", "ejs");
@@ -23,15 +25,6 @@ function generateRandomString() {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
   return result;
-}
-
-function findUserByEmail(email) {
-  for (const userID in users) {
-    if (users[userID].email === email) {
-      return users[userID];
-    }
-  }
-  return null;
 }
 
 function urlsForUser(userID) {
@@ -241,7 +234,7 @@ app.post("/login", (req, res) => {
     return res.status(400).send("Please enter email and passward.");
   }
   // lookup user
-  const user = findUserByEmail(email);
+  const user = findUserByEmail(email, users);
   // if user does not exist
   if (!user) {
     return res.status(403).send("This email has not been registered yet.");
@@ -283,7 +276,7 @@ app.post("/register", (req, res) => {
     return res.status(400).send("Please enter email and passward.");
   }
   // check if user exists
-  if (findUserByEmail(email)) {
+  if (findUserByEmail(email, users)) {
     return res.status(400).send("This email has already been registered.");
   }
 
