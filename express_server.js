@@ -1,5 +1,6 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
 
 const app = express();
 const PORT = 8080;
@@ -39,31 +40,31 @@ function urlsForUser(userID) {
 }
 
 // DATABASE
+// const users = {};
 const users = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    password: bcrypt.hashSync("purple-monkey-dinosaur"),
   },
   user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk",
+    password: bcrypt.hashSync("dishwasher-funk"),
   },
   user3RandomID: {
     id: "user3RandomID",
     email: "a@a.com",
-    password: "123",
+    password: bcrypt.hashSync("123"),
   },
 };
-
-// const urlDatabase = {};
 
 // const urlDatabase = {
 //   b2xVn2: "http://www.lighthouselabs.ca",
 //   "9sm5xK": "http://www.google.com",
 // };
 
+// const urlDatabase = {};
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -222,8 +223,6 @@ app.get("/login", (req, res) => {
 
   const templateVars = {
     user: users[req.cookies["user_id"]],
-    email: req.body.email,
-    password: req.body.password,
   };
   res.render("login", templateVars);
 });
@@ -243,7 +242,8 @@ app.post("/login", (req, res) => {
     return res.status(403).send("This email has not been registered yet.");
   }
   // if password does not match
-  if (user.password !== password) {
+  const result = bcrypt.compareSync(password, user.password);
+  if (!result) {
     return res.status(403).send("Incorrect password.");
   }
   res.cookie("user_id", user.id);
@@ -265,8 +265,6 @@ app.get("/register", (req, res) => {
 
   const templateVars = {
     user: users[req.cookies["user_id"]],
-    email: req.body.email,
-    password: req.body.password,
   };
   res.render("register", templateVars);
 });
@@ -283,14 +281,19 @@ app.post("/register", (req, res) => {
   if (findUserByEmail(email)) {
     return res.status(400).send("This email has already been registered.");
   }
-  // create a new user object
+
   const newUserID = generateRandomString();
   // update the users object
   users[newUserID] = {
     id: newUserID,
     email: email,
-    password: password,
+    password: bcrypt.hashSync(password, 10),
   };
+  console.log(
+    "Hashed password for regiestration:",
+    bcrypt.hashSync(password, 10)
+  );
+  console.log(users[newUserID]);
   // automatically log user in
   res.cookie("user_id", newUserID);
   res.redirect("/urls");
